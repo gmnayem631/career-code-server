@@ -3,11 +3,17 @@ const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
 const port = process.env.PORT || 3000;
 require("dotenv").config();
 
 // middleware
-app.use(cors({ origin: ["http://localhost:5173/"], credentials: true }));
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.au1728f.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -33,10 +39,17 @@ async function run() {
 
     // jwt related apis
     app.post("/jwt", async (req, res) => {
-      const { email } = req.body;
-      const user = { email };
-      const token = jwt.sign(user, "secret", { expiresIn: "6h" });
-      res.send({ token });
+      const userData = req.body;
+      const token = jwt.sign(userData, process.env.JWT_ACCESS_SECRET, {
+        expiresIn: "1d",
+      });
+
+      // setting the cookie
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: false,
+      });
+      res.send({ success: true });
     });
 
     // jobs api
@@ -51,14 +64,6 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
-
-    // not a good practice
-    // app.get("/jobsByEmailAddress", async (req, res) => {
-    //   const email = req.query.email;
-    //   const query = { hr_email: email };
-    //   const result = await jobsCollection.find(query).toArray();
-    //   res.send(result);
-    // });
 
     app.get("/jobs/:id", async (req, res) => {
       const id = req.params.id;
@@ -77,6 +82,8 @@ async function run() {
 
     app.get("/applications", async (req, res) => {
       const email = req.query.email;
+
+      console.log(req.cookies);
 
       const query = {
         applicant: email,
