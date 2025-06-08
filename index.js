@@ -15,6 +15,18 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(cookieParser());
+
+const logger = (req, res, next) => {
+  console.log("inside the logger middleware");
+  next();
+};
+
+const verifyToken = (req, res, next) => {
+  const token = req?.cookies?.token;
+  console.log("cookie in the middleware", token);
+  next();
+};
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.au1728f.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -80,10 +92,10 @@ async function run() {
 
     // job application related apis
 
-    app.get("/applications", async (req, res) => {
+    app.get("/applications", logger, verifyToken, async (req, res) => {
       const email = req.query.email;
 
-      console.log(req.cookies);
+      // console.log(req.cookies);
 
       const query = {
         applicant: email,
