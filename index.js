@@ -34,6 +34,9 @@ async function run() {
     // jwt related apis
     app.post("/jwt", async (req, res) => {
       const { email } = req.body;
+      const user = { email };
+      const token = jwt.sign(user, "secret", { expiresIn: "6h" });
+      res.send({ token });
     });
 
     // jobs api
