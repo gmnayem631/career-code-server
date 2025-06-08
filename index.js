@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
+const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 3000;
 require("dotenv").config();
 
@@ -29,6 +30,11 @@ async function run() {
     const applicationsCollection = client
       .db("careerCode")
       .collection("applications");
+
+    // jwt related apis
+    app.post("/jwt", async (req, res) => {
+      const { email } = req.body;
+    });
 
     // jobs api
     app.get("/jobs", async (req, res) => {
